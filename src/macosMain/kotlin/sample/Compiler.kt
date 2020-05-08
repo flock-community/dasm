@@ -11,10 +11,10 @@ fun String.compile() = tokenize().parse().emit()
             it.first matches this
         }.map {
             it.second
-        }.first()
+        }.firstOrNull()
 
 
-        return listOf(type)
+        return listOf(type ?: "Not found")
     }
 
     fun List<String>.parse() : Program {
