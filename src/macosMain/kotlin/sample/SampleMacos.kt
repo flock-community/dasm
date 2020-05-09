@@ -1,12 +1,10 @@
 package sample
 
 
-
 fun main() {
 
-    //val compiled = "var uitkomst = 1 + 2".compile()
+    val compiled = "waarde getal wordt 14 druk af getal".compile()
 
-    println("14 adsksdfl;".compile().decodeToString())
+    println(compiled.decodeToString())
+
 }
-
-
