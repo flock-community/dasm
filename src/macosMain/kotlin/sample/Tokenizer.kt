@@ -1,5 +1,7 @@
 package sample
 
+import sample.exceptions.TokenizerException
+
 object Keyword : Token.Type
 object Assignment : Token.Type
 object Number : Token.Type
@@ -19,13 +21,13 @@ val matchers = listOf(
     Regex("^[a-zA-Z]+") to Identifier
 )
 
-fun String.tokenize(): List<Token> = matchers
+fun String.tokenize(index: Long = 1L): List<Token> = matchers
     .map { it.first.find(this)?.value to it.second }
     .mapNotNull { it.first?.run { this to it.second } }
-    .map { Token(it.second, it.first, 1) }
+    .map { Token(it.second, it.first, index) }
     .firstOrNull()
-    ?.let { with(removePrefix(it.value)) { if (isEmpty()) listOf(it) else listOf(it) + tokenize() } }
-    ?: throw RuntimeException("'${this.first()}' is niet gedefinieerd")
+    ?.let { with(removePrefix(it.value)) { if (isEmpty()) listOf(it) else listOf(it) + tokenize(index + it.value.length) } }
+    ?: throw TokenizerException("Op positie $index in de code is '${first()}' in wat hier volgt '${substring(0..25)}...' niet wat we verwachten")
 
 data class Token(
     val type: Type,
