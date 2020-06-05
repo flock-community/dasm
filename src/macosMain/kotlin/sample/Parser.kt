@@ -7,27 +7,30 @@ class TokenProvider(private val tokenIterator: Iterator<Token>) {
     var currentToken = nextToken() ?: throw ParserException("CurrentToken cannot be null")
     var nextToken = nextToken()
 
-    fun eatToken() {
-        currentToken = nextToken ?: throw ParserException("NextToken cannnot be null")
-        nextToken = nextToken()
+    init {
+        printTokens()
     }
+
+    fun eatToken() {
+        currentToken = nextToken ?: throw ParserException("NextToken cannot be null")
+        nextToken = nextToken()
+
+        printTokens()
+    }
+
+    private fun printTokens() =
+        println("currentToken ${currentToken.value} nextToken: ${nextToken?.value}")
 
     fun hasNext() = nextToken != null
 
     private fun nextToken() = kotlin.runCatching { tokenIterator.next() }.getOrNull()
 }
 
-
-
-
-
-typealias ProvideTokens = () -> Pair<Token?, Token?>
-typealias EatToken = () -> Unit
-
 fun List<Token>.parse(): Program {
 
+    val filteredList = this.filterNot { it.type is Whitespace }
 
-    val tokenProvider = TokenProvider(iterator())
+    val tokenProvider = TokenProvider(filteredList.iterator())
 
     var nodes = mutableListOf<ProgramNode>()
 
@@ -51,15 +54,17 @@ private fun parseKeyword(tokenProvider: TokenProvider): ProgramNode = when (toke
     "druk af" -> parsePrintStatement(tokenProvider)
     "waarde" -> parseVariableDeclarationStatement(tokenProvider)
     else -> throw ParserException("Onbekend keyword")
+}.also {
+    println("Parsing keyword: ${tokenProvider.currentToken.value}")
 }
 
 
 private fun parsePrintStatement(tokenProvider: TokenProvider): ProgramNode {
 
+    println("Parsing print statement: ${tokenProvider.currentToken}")
+
     tokenProvider.eatToken()
-
     val expressionNode = parseExpression(tokenProvider)
-
     return ProgramNode.PrintStatement(expressionNode)
 }
 
@@ -73,6 +78,8 @@ private fun parseExpression(tokenProvider: TokenProvider): ExpressionNode {
 }
 
 fun parseVariableDeclarationStatement(tokenProvider: TokenProvider): ProgramNode {
+
+    println("Parsing variable declaration: ${tokenProvider.currentToken}")
 
     // currentToken = waarde
     tokenProvider.eatToken()
