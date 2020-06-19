@@ -1,5 +1,6 @@
 package sample
 
+import sample.ExpressionNode.*
 import sample.exceptions.ParserException
 
 class TokenProvider(private val tokenIterator: Iterator<Token>) {
@@ -57,10 +58,10 @@ private fun TokenProvider.parsePrintStatement(): ProgramNode {
 }
 
 private fun TokenProvider.parseExpression(): ExpressionNode = when (currentToken.type) {
-    is Identifier -> ExpressionNode.IdentifierNode(currentToken.value)
-    is Number -> ExpressionNode.NumberNode(currentToken.value.toLong())
-    is Assignment -> ExpressionNode.AssignmentNode(currentToken.value)
-    is EOL -> ExpressionNode.EOLNode
+    is Identifier -> IdentifierNode(currentToken.value)
+    is Number -> NumberNode(currentToken.value.toLong())
+    is Assignment -> AssignmentNode(currentToken.value)
+    is EOL -> EOLNode
     else -> throw ParserException("Unknown token type: ${currentToken.type}")
 }
 
@@ -71,17 +72,17 @@ fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode 
     if (nextToken?.value != "wordt") throw ParserException("Assignment expected, got: '${nextToken?.value}'")
     eatToken()
     eatToken()
-    val number = currentToken.value.toLong()
+    val numberExpression = parseExpression()
     eatToken()
     if(currentToken.type != EOL) throw ParserException("; expected")
-    return ProgramNode.VariableAndAssignmentDeclaration(variable, parseExpression()).also {
+    return ProgramNode.VariableAndAssignmentDeclaration(variable, parseExpression(), numberExpression).also {
         println("Parsed variable declaration: $it")
     }
 }
 
 sealed class ProgramNode {
     data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
-    data class VariableAndAssignmentDeclaration(val name: String, val initializer: ExpressionNode) : ProgramNode()
+    data class VariableAndAssignmentDeclaration(val name: String, val initializer: ExpressionNode, val numberNode: ExpressionNode) : ProgramNode() // Temp NumberNode
 }
 
 sealed class ExpressionNode {
