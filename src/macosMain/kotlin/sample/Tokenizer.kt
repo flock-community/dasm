@@ -7,6 +7,7 @@ object Assignment : Token.Type
 object Number : Token.Type
 object Whitespace : Token.Type
 object Identifier : Token.Type
+object EOL : Token.Type
 
 val keywords = listOf(
     "waarde",
@@ -18,7 +19,8 @@ val matchers = listOf(
     Regex("^wordt") to Assignment,
     Regex("^-?[.0-9]+") to Number,
     Regex("^\\s+") to Whitespace,
-    Regex("^[a-zA-Z]+") to Identifier
+    Regex("^[a-zA-Z]+") to Identifier,
+    Regex("^;") to EOL
 )
 
 fun String.tokenize(index: Long = 1L): List<Token> = matchers
