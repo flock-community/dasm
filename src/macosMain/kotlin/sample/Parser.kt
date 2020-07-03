@@ -27,23 +27,23 @@ class TokenProvider(private val tokenIterator: Iterator<Token>) {
     private fun nextToken() = kotlin.runCatching { tokenIterator.next() }.getOrNull()
 }
 
-fun List<Token>.parse(): Program {
+fun List<Token>.parse(): List<StatementNode> {
 
     val filteredList = this.filterNot { it.type is Whitespace }
     val tokenProvider = TokenProvider(filteredList.iterator())
-    val nodes = mutableListOf<ProgramNode>()
+    val nodes = mutableListOf<StatementNode>()
     while (tokenProvider.hasNext()) {
         nodes.add(tokenProvider.parseStatement())
     }
     return nodes
 }
 
-private fun TokenProvider.parseStatement(): ProgramNode = when (currentToken.type) {
+private fun TokenProvider.parseStatement(): StatementNode = when (currentToken.type) {
     is Keyword -> parseKeyword()
     else -> throw ParserException("Statement does not start with keyword or identifier: ${currentToken.type}")
 }
 
-private fun TokenProvider.parseKeyword(): ProgramNode = when (currentToken.value) {
+private fun TokenProvider.parseKeyword(): StatementNode = when (currentToken.value) {
     "druk af" -> parsePrintStatement()
     "waarde" -> parseVariableDeclarationAndAssignmentStatement()
     else -> throw ParserException("Unknown keyword")
@@ -51,10 +51,10 @@ private fun TokenProvider.parseKeyword(): ProgramNode = when (currentToken.value
     println("Parsing keyword: ${this.currentToken.value}")
 }
 
-private fun TokenProvider.parsePrintStatement(): ProgramNode {
+private fun TokenProvider.parsePrintStatement(): StatementNode {
     println("Parsing print statement: ${this.currentToken}")
     eatToken()
-    return ProgramNode.PrintStatement(parseExpression())
+    return StatementNode.PrintStatement(parseExpression())
 }
 
 private fun TokenProvider.parseExpression(): ExpressionNode = when (currentToken.type) {
@@ -65,7 +65,7 @@ private fun TokenProvider.parseExpression(): ExpressionNode = when (currentToken
     else -> throw ParserException("Unknown token type: ${currentToken.type}")
 }
 
-fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode {
+fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): StatementNode {
     println("Parsing variable declaration: ${this.currentToken}")
     eatToken()
     val variable = currentToken.value // getal
@@ -75,14 +75,16 @@ fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode 
     val numberExpression = parseExpression()
     eatToken()
     if(currentToken.type != EOL) throw ParserException("; expected")
-    return ProgramNode.VariableAndAssignmentDeclaration(variable, parseExpression(), numberExpression).also {
+    return StatementNode.VariableAndAssignmentDeclaration(variable, parseExpression(), numberExpression).also {
         println("Parsed variable declaration: $it")
     }
 }
 
-sealed class ProgramNode {
-    data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
-    data class VariableAndAssignmentDeclaration(val name: String, val initializer: ExpressionNode, val numberNode: ExpressionNode) : ProgramNode() // Temp NumberNode
+typealias Program = List<StatementNode>
+
+sealed class StatementNode {
+    data class PrintStatement(val expression: ExpressionNode) : StatementNode()
+    data class VariableAndAssignmentDeclaration(val name: String, val initializer: ExpressionNode, val numberNode: ExpressionNode) : StatementNode() // Temp NumberNode
 }
 
 sealed class ExpressionNode {
@@ -91,3 +93,4 @@ sealed class ExpressionNode {
     data class AssignmentNode(val value: String) : ExpressionNode()
     object EOLNode : ExpressionNode()
 }
+

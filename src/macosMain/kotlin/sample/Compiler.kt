@@ -1,5 +1,6 @@
 package sample
 
-fun String.compile() = tokenize().parse().emit()
+fun String.compile() = tokenize().parse().transform().emit()
 
-typealias Program = List<ProgramNode>
+
+
