@@ -66,7 +66,7 @@ private fun TokenProvider.parseExpression(): ExpressionNode {
     println("Parsing Expression starting with: $currentToken")
     return when (currentToken.type) {
 //    is Identifier -> IdentifierNode(currentToken.value)
-        is Number -> NumberNode(currentToken.value.toLong())
+        is Number -> NumberNode(currentToken.value.toFloat())
 //    is Assignment -> AssignmentNode(currentToken.value)
         else -> throw ParserException("Unknown token type: ${currentToken.type}")
     }.also { eatToken() }
@@ -103,7 +103,7 @@ sealed class ProgramNode : Node {
 
 sealed class ExpressionNode : Node {
     data class IdentifierNode(val value: String) : ExpressionNode()
-    data class NumberNode(val number: Long) : ExpressionNode()
+    data class NumberNode(val number: Float) : ExpressionNode()
     data class AssignmentNode(val value: String) : ExpressionNode()
 }
 
