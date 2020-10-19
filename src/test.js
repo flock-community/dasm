@@ -1,14 +1,36 @@
 const magicModuleHeader = [0x00, 0x61, 0x73, 0x6d];
 const moduleVersion = [0x01, 0x00, 0x00, 0x00];
+const typeSection = [1, 8, 2, 96, 1, 125, 0, 96, 0, 0];
+const importSection = [2, 27, 2, 3, 101, 110, 118, 5, 112, 114, 105, 110, 116, 0, 0, 3, 101, 110, 118, 6, 109, 101, 109, 111, 114, 121, 2, 0, 1];
+const funcSection = [3, 2, 1, 1];
+const exportSection = [7, 7, 1, 3, 114, 117, 110, 0, 1];
 
-const code = [1, 133, 128, 128, 128, 0, 1, 96, 0, 1, 127, 3, 130, 128, 128, 128, 0, 1, 0, 4, 132, 128, 128, 128, 0, 1, 112, 0, 0, 5, 131, 128, 128, 128, 0, 1, 0, 1, 6, 129, 128, 128, 128, 0, 0, 7, 145, 128, 128, 128, 0, 2, 6, 109, 101, 109, 111, 114, 121, 2, 0, 4, 109, 97, 105, 110, 0, 0, 10, 138, 128, 128, 128, 0, 1, 132, 128, 128, 128, 0, 0, 65, 14, 11];
+const code = [67, 0, 0, 96, 65, 16, 0]
 
-const wasm = () => new Uint8Array([
+const codeSection = [10, 11, 1, 9, 0, ...code, 11]
+
+const wasm = new Uint8Array([
     ...magicModuleHeader,
     ...moduleVersion,
-    ...code
+    ...typeSection,
+    ...importSection,
+    ...funcSection,
+    ...exportSection,
+    ...codeSection,
 ]);
 
-const instance = WebAssembly.instantiate(wasm());
+const lengths = [magicModuleHeader.length, moduleVersion.length, typeSection.length, importSection.length, funcSection.length, exportSection.length, codeSection.length]
+console.log(lengths);
+console.log(lengths.reduce((acc, cur) => acc + cur));
 
-instance.then(it => console.log(it.instance.exports.main()));
+const opts = {
+    env: {
+        print: console.log,
+        memory: new WebAssembly.Memory({initial: 1})
+    }
+}
+
+const run = it => it.instance.exports.run()
+WebAssembly.instantiate(wasm, opts)
+    .then(run)
+    .then(console.log);
