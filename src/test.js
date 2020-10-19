@@ -5,9 +5,9 @@ const importSection = [2, 27, 2, 3, 101, 110, 118, 5, 112, 114, 105, 110, 116, 0
 const funcSection = [3, 2, 1, 1];
 const exportSection = [7, 7, 1, 3, 114, 117, 110, 0, 1];
 
-const code = [67, 0, 0, 96, 65, 16, 0]
+const code = [67, 0, 0, 96, 65, 16, 0];
 
-const codeSection = [10, 11, 1, 9, 0, ...code, 11]
+const codeSection = [10, 11, 1, 9, 0, ...code, 11];
 
 const wasm = new Uint8Array([
     ...magicModuleHeader,
@@ -19,10 +19,6 @@ const wasm = new Uint8Array([
     ...codeSection,
 ]);
 
-const lengths = [magicModuleHeader.length, moduleVersion.length, typeSection.length, importSection.length, funcSection.length, exportSection.length, codeSection.length]
-console.log(lengths);
-console.log(lengths.reduce((acc, cur) => acc + cur));
-
 const opts = {
     env: {
         print: console.log,
@@ -30,7 +26,4 @@ const opts = {
     }
 }
 
-const run = it => it.instance.exports.run()
-WebAssembly.instantiate(wasm, opts)
-    .then(run)
-    .then(console.log);
+WebAssembly.instantiate(wasm, opts).then(it => it.instance.exports.run())
