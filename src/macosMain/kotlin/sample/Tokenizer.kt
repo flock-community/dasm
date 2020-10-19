@@ -8,6 +8,7 @@ object Number : Token.Type
 object Whitespace : Token.Type
 object Identifier : Token.Type
 object EOL : Token.Type
+object EOP : Token.Type
 
 val keywords = listOf(
     "waarde",
