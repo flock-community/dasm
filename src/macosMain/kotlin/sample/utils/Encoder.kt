@@ -23,13 +23,11 @@ fun Long.toUnsignedLeb128(): Byte {
     return result.toByte()
 }
 
-fun Float.toIEEE754Array(): ByteArray = toRawBits()
-    .let {
-        byteArrayOf(
-            it.toByte(),
-            (it shr 8).toByte(),
-            (it shr 16).toByte(),
-            (it shr 24).toByte()
-        )
-    }
-
+fun Float.toIEEE754Array(): ByteArray = toRawBits().let {
+    byteArrayOf(
+        it.toByte(),
+        (it shr 8).toByte(),
+        (it shr 16).toByte(),
+        (it shr 24).toByte()
+    )
+}

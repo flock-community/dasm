@@ -3,6 +3,7 @@ package sample
 import sample.ExpressionNode.NumberNode
 import sample.TerminationNode.EOLNode
 import sample.exceptions.ParserException
+import sample.utils.log
 
 class TokenProvider(private val tokenIterator: Iterator<Token>) {
 
@@ -22,7 +23,7 @@ class TokenProvider(private val tokenIterator: Iterator<Token>) {
     }
 
     private fun printTokens(previous: String? = null) =
-        println("\n${if (previous == null) "" else "Eating: $previous, "}Current: '${currentToken.value}' Next: '${nextToken?.value}'\n")
+        log("\n${if (previous == null) "" else "Eating: $previous, "}Current: '${currentToken.value}' Next: '${nextToken?.value}'\n")
 
     fun hasNext() = nextToken != null
 
@@ -46,7 +47,7 @@ private fun TokenProvider.parseStatement(): ProgramNode = when (currentToken.typ
 }
 
 private fun TokenProvider.parseKeyword(): ProgramNode {
-    println("Parsing keyword: ${currentToken.value}")
+    log("Parsing keyword: ${currentToken.value}")
     return when (currentToken.value) {
         "druk af" -> parsePrintStatement()
 //    "waarde" -> parseVariableDeclarationAndAssignmentStatement()
@@ -55,7 +56,7 @@ private fun TokenProvider.parseKeyword(): ProgramNode {
 }
 
 private fun TokenProvider.parsePrintStatement(): ProgramNode {
-    println("Parsing print statement")
+    log("Parsing print statement")
     eatToken()
     val expression = parseExpression()
     parseEndOfLine()
@@ -63,7 +64,7 @@ private fun TokenProvider.parsePrintStatement(): ProgramNode {
 }
 
 private fun TokenProvider.parseExpression(): ExpressionNode {
-    println("Parsing Expression starting with: $currentToken")
+    log("Parsing Expression starting with: $currentToken")
     return when (currentToken.type) {
 //    is Identifier -> IdentifierNode(currentToken.value)
         is Number -> NumberNode(currentToken.value.toFloat())
@@ -78,7 +79,7 @@ private fun TokenProvider.parseEndOfLine(): TerminationNode = when (val type = c
 }.also { eatToken() }
 
 fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode {
-    println("Parsing variable declaration: ${this.currentToken}")
+    log("Parsing variable declaration: ${this.currentToken}")
     eatToken()
     val variable = currentToken.value // getal
     if (nextToken?.value != "wordt") throw ParserException("Assignment expected, got: '${nextToken?.value}'")
@@ -88,7 +89,7 @@ fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode 
     eatToken()
     if (currentToken.type != EOL) throw ParserException("; expected")
     return ProgramNode.VariableAndAssignmentDeclaration(variable, parseExpression(), numberExpression).also {
-        println("Parsed variable declaration: $it")
+        log("Parsed variable declaration: $it")
     }
 }
 

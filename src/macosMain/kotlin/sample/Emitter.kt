@@ -2,13 +2,24 @@ package sample
 
 import sample.ProgramNode.PrintStatement
 import sample.exceptions.EmitterException
+import sample.utils.log
 import sample.utils.toIEEE754Array
 import sample.utils.unsignedLeb128
 
-fun Program.emit(): ByteArray = map { it.emit() }.reduce { acc, cur -> acc + cur }
+fun Program.emit(): ByteArray = map { it.emit() }
+    .reduce { acc, cur -> acc + cur }
+    .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
+    .let { emitHeader() + emitModuleVersion() + emitTypeSection() + emitImportSection() + emitFunctionSection() + emitExportSection() + it }
+
+fun emitHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
+fun emitModuleVersion() = byteArrayOf(0x01, 0x00, 0x00, 0x00)
+fun emitTypeSection() = byteArrayOf(1, 8, 2, 96, 1, 125, 0, 96, 0, 0)
+fun emitImportSection() = byteArrayOf(2, 27, 2, 3, 101, 110, 118, 5, 112, 114, 105, 110, 116, 0, 0, 3, 101, 110, 118, 6, 109, 101, 109, 111, 114, 121, 2, 0, 1)
+fun emitFunctionSection() = byteArrayOf(3, 2, 1, 1)
+fun emitExportSection() = byteArrayOf(7, 7, 1, 3, 114, 117, 110, 0, 1)
 
 private fun ProgramNode.emit(): ByteArray {
-    println("Emitting Program Node $this")
+    log("Emitting Program Node $this")
     return when (this) {
         is PrintStatement -> emitPrintStatement()
         else -> throw EmitterException("Unknown program node: $this")
@@ -16,12 +27,12 @@ private fun ProgramNode.emit(): ByteArray {
 }
 
 private fun PrintStatement.emitPrintStatement(): ByteArray {
-    println("Emitting Print Statement")
+    log("Emitting Print Statement")
     return expression.emit() + Opcode.call.toByte() + unsignedLeb128(0L)
 }
 
 private fun ExpressionNode.emit(): ByteArray {
-    println("Emitting Expression $this")
+    log("Emitting Expression $this")
     return when (this) {
         is ExpressionNode.NumberNode -> byteArrayOf(Opcode.f32_const.toByte()) + number.toIEEE754Array()
         else -> throw EmitterException("Unknown expression: $this")
