@@ -11,9 +11,13 @@ fun AST.emit(): ByteArray = Emitter(this).emit()
 
 class Emitter(private val ast: AST) {
 
-    fun emit(): ByteArray = ast.map { it.emit() }
-        .reduce { acc, cur -> acc + cur }
-        .let { createHeader() + createModuleVersion() + createTypeSection() + createImportSection() + createFunctionSection() + emitExportSection() + createCodeSection(it) }
+    fun emit(): ByteArray = createHeader() +
+            createModuleVersion() +
+            createTypeSection() +
+            createImportSection() +
+            createFunctionSection() +
+            emitExportSection() +
+            ast.createCodeSection()
 
     private fun createImportSection() = createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(), memoryImport())))
 
@@ -21,7 +25,9 @@ class Emitter(private val ast: AST) {
 
     private fun createFunctionSection() = createSection(Section.func, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
 
-    private fun createCodeSection(it: ByteArray) = createSection(Section.code, byteArrayOf(1, 9, 0) + it + 11)
+    private fun AST.createCodeSection() = map { it.emit() }
+        .reduce { acc, cur -> acc + cur }
+        .let { createSection(Section.code, byteArrayOf(1, 9, 0) + it + 11) }
 
     private fun createPrintFunctionImport() = "env".encode() +
             "print".encode() +
