@@ -48,8 +48,8 @@ private fun TokenProvider.parseStatement(): ProgramNode = when (currentToken.typ
 
 private fun TokenProvider.parseKeyword(): ProgramNode {
     log("Parsing keyword: ${currentToken.value}")
-    return when (currentToken.value) {
-        "druk af" -> parsePrintStatement()
+    return when (currentToken.type) {
+        is PrintKeyword -> parsePrintStatement()
 //    "waarde" -> parseVariableDeclarationAndAssignmentStatement()
         else -> throw ParserException("Unknown keyword")
     }
