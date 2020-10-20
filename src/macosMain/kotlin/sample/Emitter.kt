@@ -13,14 +13,15 @@ class Emitter(private val ast: AST) {
 
     fun emit(): ByteArray = ast.map { it.emit() }
         .reduce { acc, cur -> acc + cur }
-        .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
-        .let { createHeader() + createModuleVersion() + createTypeSection() + createImportSection() + createFunctionSection() + emitExportSection() + it }
+        .let { createHeader() + createModuleVersion() + createTypeSection() + createImportSection() + createFunctionSection() + emitExportSection() + createCodeSection(it) }
 
     private fun createImportSection() = createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(), memoryImport())))
 
     private fun createTypeSection() = createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
 
     private fun createFunctionSection() = createSection(Section.func, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
+
+    private fun createCodeSection(it: ByteArray) = createSection(Section.code, byteArrayOf(1, 9, 0) + it + 11)
 
     private fun createPrintFunctionImport() = "env".encode() +
             "print".encode() +
@@ -72,7 +73,7 @@ private fun ExpressionNode.emit(): ByteArray {
     }
 }
 
-fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.intCode.toByte()) + encodeVector(data)
+fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.toByte()) + encodeVector(data)
 fun encodeVector(data: ByteArray) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data
 fun encodeVector(data: List<ByteArray>) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data.reduce { acc, bytes -> acc + bytes }
 
@@ -116,7 +117,7 @@ enum class Valtype(private val code: Int) {
 }
 
 // https://webassembly.github.io/spec/core/binary/modules.html#sections
-enum class Section(val intCode: Int) {
+enum class Section(private val intCode: Int) {
     custom(0),
     type(1),
     import(2),
@@ -127,7 +128,7 @@ enum class Section(val intCode: Int) {
     export(7),
     start(8),
     element(9),
-    code(0);
+    code(10);
     //data(11)
 
     fun toByte() = intCode.toByte()
