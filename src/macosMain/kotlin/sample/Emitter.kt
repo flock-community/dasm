@@ -11,30 +11,26 @@ fun AST.emit(): ByteArray = Emitter(this).emit()
 
 class Emitter(private val ast: AST) {
 
-    fun emit() : ByteArray = ast.map { it.emit() }
-         .reduce { acc, cur -> acc + cur }
-         .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
-         .let { emitHeader() + emitModuleVersion() + createTypeSection() + createImportSection() + emitFunctionSection() + emitExportSection() + it }
+    fun emit(): ByteArray = ast.map { it.emit() }
+        .reduce { acc, cur -> acc + cur }
+        .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
+        .let { emitHeader() + emitModuleVersion() + createTypeSection() + createImportSection() + emitFunctionSection() + emitExportSection() + it }
 
-    fun createImportSection() =
-        createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(),  memoryImport())))
+    private fun createImportSection() = createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(), memoryImport())))
 
-    fun createTypeSection() =
-        createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
+    fun createTypeSection() = createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
 
-    fun createPrintFunctionImport() =
-        "env".encode() +
-        "print".encode() +
-        ExportType.func.toByte() +
-        0x00
+    private fun createPrintFunctionImport() = "env".encode() +
+            "print".encode() +
+            ExportType.func.toByte() +
+            0x00
 
-    fun memoryImport() =
-        "env".encode() +
-        "memory".encode() +
-        ExportType.mem.toByte() +
-        /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
-        0x00 +
-        0x01
+    private fun memoryImport() = "env".encode() +
+            "memory".encode() +
+            ExportType.mem.toByte() +
+            /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
+            0x00 +
+            0x01
 
     private fun createPrintFuncType() =
         byteArrayOf(functionType.toByte()) +
@@ -47,16 +43,11 @@ class Emitter(private val ast: AST) {
                 encodeVector(byteArrayOf()) +
                 emptyArray.toByte()
 
-
-
 }
-
-
 
 fun emitHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 fun emitModuleVersion() = byteArrayOf(0x01, 0x00, 0x00, 0x00)
 fun emitTypeSection() = byteArrayOf(1, 8, 2, 96, 1, 125, 0, 96, 0, 0)
-fun emitImportSection() = byteArrayOf(2, 27, 2, 3, 101, 110, 118, 5, 112, 114, 105, 110, 116, 0, 0, 3, 101, 110, 118, 6, 109, 101, 109, 111, 114, 121, 2, 0, 1)
 fun emitFunctionSection() = byteArrayOf(3, 2, 1, 1)
 fun emitExportSection() = byteArrayOf(7, 7, 1, 3, 114, 117, 110, 0, 1)
 
@@ -81,11 +72,9 @@ private fun ExpressionNode.emit(): ByteArray {
     }
 }
 
-
 fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.intCode.toByte()) + encodeVector(data)
 fun encodeVector(data: ByteArray) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data
 fun encodeVector(data: List<ByteArray>) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data.reduce { acc, bytes -> acc + bytes }
-
 
 val functionType = 0x60
 val emptyArray = 0x0
@@ -128,16 +117,16 @@ enum class Valtype(private val code: Int) {
 
 // https://webassembly.github.io/spec/core/binary/modules.html#sections
 enum class Section(val intCode: Int) {
-    custom ( 0),
-    type ( 1),
-    import ( 2),
-    func ( 3),
-    table ( 4),
-    memory ( 5),
-    global ( 6),
-    export ( 7),
-    start ( 8),
-    element ( 9),
+    custom(0),
+    type(1),
+    import(2),
+    func(3),
+    table(4),
+    memory(5),
+    global(6),
+    export(7),
+    start(8),
+    element(9),
     code(0);
     //data(11)
 
@@ -145,9 +134,9 @@ enum class Section(val intCode: Int) {
 }
 
 enum class ExportType(private val code: Int) {
-    func (0x00),
-    table (0x01),
-    mem (0x02),
+    func(0x00),
+    table(0x01),
+    mem(0x02),
     global(0x03);
 
     fun toByte() = code.toByte()
