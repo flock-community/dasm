@@ -14,21 +14,19 @@ class Emitter(private val ast: AST) {
     fun emit() : ByteArray = ast.map { it.emit() }
          .reduce { acc, cur -> acc + cur }
          .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
-         .let { emitHeader() + emitModuleVersion() + emitTypeSection() + createImportSection() + emitFunctionSection() + emitExportSection() + it }
-        .also {
-            log("\n\nExpected importSection: ${emitImportSection().toJSON()}\n\nactual importSection: ${createImportSection().toJSON()}")
-        }
-
+         .let { emitHeader() + emitModuleVersion() + createTypeSection() + createImportSection() + emitFunctionSection() + emitExportSection() + it }
 
     fun createImportSection() =
         createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(),  memoryImport())))
+
+    fun createTypeSection() =
+        createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
 
     fun createPrintFunctionImport() =
         "env".encode() +
         "print".encode() +
         ExportType.func.toByte() +
         0x00
-
 
     fun memoryImport() =
         "env".encode() +
@@ -37,6 +35,19 @@ class Emitter(private val ast: AST) {
         /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
         0x00 +
         0x01
+
+    private fun createPrintFuncType() =
+        byteArrayOf(functionType.toByte()) +
+                encodeVector(byteArrayOf(Valtype.f32.toByte())) +
+                emptyArray.toByte()
+
+
+    private fun createFuncType() =
+        byteArrayOf(functionType.toByte()) +
+                encodeVector(byteArrayOf()) +
+                emptyArray.toByte()
+
+
 
 }
 
