@@ -7,61 +7,46 @@ import sample.utils.log
 import sample.utils.toIEEE754Array
 import sample.utils.unsignedLeb128
 
-fun AST.emit(): ByteArray = Emitter(this).emit()
+fun AST.emit(): ByteArray = createHeader() +
+        createModuleVersion() +
+        createTypeSection() +
+        createImportSection() +
+        createFunctionSection() +
+        createExportSection() +
+        createCodeSection()
 
-class Emitter(private val ast: AST) {
+private fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
+private fun createModuleVersion() = byteArrayOf(0x01, 0x00, 0x00, 0x00)
+private fun createTypeSection() = createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
+private fun createImportSection() = createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(), memoryImport())))
+private fun createFunctionSection() = createSection(Section.func, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
+private fun createExportSection() = createSection(Section.export, encodeVector(listOf(createRunExportType())))
+private fun AST.createCodeSection() = createSection(Section.code, byteArrayOf(1, 9, 0) + map { it.emit() }.reduce { acc, cur -> acc + cur } + 11)
 
-    fun emit(): ByteArray = createHeader() +
-            createModuleVersion() +
-            createTypeSection() +
-            createImportSection() +
-            createFunctionSection() +
-            createExportSection() +
-            ast.createCodeSection()
+private fun createPrintFunctionImport() = "env".encode() +
+        "print".encode() +
+        ExportType.func.toByte() +
+        0x00
 
-    private fun createImportSection() = createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(), memoryImport())))
+private fun memoryImport() = "env".encode() +
+        "memory".encode() +
+        ExportType.mem.toByte() +
+        /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
+        0x00 +
+        0x01
 
-    private fun createTypeSection() = createSection(Section.type, encodeVector(listOf(createPrintFuncType(), createFuncType())))
-
-    private fun createFunctionSection() = createSection(Section.func, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
-
-    private fun AST.createCodeSection() = map { it.emit() }
-        .reduce { acc, cur -> acc + cur }
-        .let { createSection(Section.code, byteArrayOf(1, 9, 0) + it + 11) }
-
-    private fun createExportSection() = createSection(Section.export, encodeVector(listOf(createRunExportType())))
-
-    private fun createPrintFunctionImport() = "env".encode() +
-            "print".encode() +
-            ExportType.func.toByte() +
-            0x00
-
-    private fun memoryImport() = "env".encode() +
-            "memory".encode() +
-            ExportType.mem.toByte() +
-            /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
-            0x00 +
-            0x01
-
-    private fun createPrintFuncType() =
-        byteArrayOf(functionType.toByte()) +
-                encodeVector(byteArrayOf(Valtype.f32.toByte())) +
-                emptyArray.toByte()
+private fun createPrintFuncType() = byteArrayOf(functionType.toByte()) +
+        encodeVector(byteArrayOf(Valtype.f32.toByte())) +
+        emptyArray.toByte()
 
 
-    private fun createFuncType() =
-        byteArrayOf(functionType.toByte()) +
-                encodeVector(byteArrayOf()) +
-                emptyArray.toByte()
+private fun createFuncType() = byteArrayOf(functionType.toByte()) +
+        encodeVector(byteArrayOf()) +
+        emptyArray.toByte()
 
-    private fun createRunExportType() =  "run".encode() +
-            ExportType.func.toByte() +
-            1.toByte() // 1 because we assume (for now) that we have 1 callable function
-
-}
-
-fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
-fun createModuleVersion() = byteArrayOf(0x01, 0x00, 0x00, 0x00)
+private fun createRunExportType() = "run".encode() +
+        ExportType.func.toByte() +
+        1.toByte() // 1 because we assume (for now) that we have 1 callable function
 
 private fun Node.emit(): ByteArray {
     log("Emitting Program Node $this")
@@ -84,12 +69,12 @@ private fun ExpressionNode.emit(): ByteArray {
     }
 }
 
-fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.toByte()) + encodeVector(data)
-fun encodeVector(data: ByteArray) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data
-fun encodeVector(data: List<ByteArray>) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data.reduce { acc, bytes -> acc + bytes }
+private fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.toByte()) + encodeVector(data)
+private fun encodeVector(data: ByteArray) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data
+private fun encodeVector(data: List<ByteArray>) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data.reduce { acc, bytes -> acc + bytes }
 
-val functionType = 0x60
-val emptyArray = 0x0
+const val functionType = 0x60
+const val emptyArray = 0x0
 
 enum class Opcode(private val code: Int) {
     block(0x02),
