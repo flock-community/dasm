@@ -9,4 +9,4 @@ fun String.compile() = tokenize().let { it + Token(type = EOP, value = "EOP", in
     .emit()
     .apply { log("********** EMITTED **********\n${joinToString(", ")}\n########## EMITTED ##########") }
 
-typealias Program = List<ProgramNode>
+typealias AST = List<Node>

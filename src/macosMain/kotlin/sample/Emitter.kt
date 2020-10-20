@@ -2,14 +2,45 @@ package sample
 
 import sample.ProgramNode.PrintStatement
 import sample.exceptions.EmitterException
+import sample.utils.encode
 import sample.utils.log
 import sample.utils.toIEEE754Array
 import sample.utils.unsignedLeb128
 
-fun Program.emit(): ByteArray = map { it.emit() }
-    .reduce { acc, cur -> acc + cur }
-    .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
-    .let { emitHeader() + emitModuleVersion() + emitTypeSection() + emitImportSection() + emitFunctionSection() + emitExportSection() + it }
+fun AST.emit(): ByteArray = Emitter(this).emit()
+
+class Emitter(private val ast: AST) {
+
+    fun emit() : ByteArray = ast.map { it.emit() }
+         .reduce { acc, cur -> acc + cur }
+         .let { byteArrayOf(10, 11, 1, 9, 0) + it + 11 }
+         .let { emitHeader() + emitModuleVersion() + emitTypeSection() + createImportSection() + emitFunctionSection() + emitExportSection() + it }
+        .also {
+            log("\n\nExpected importSection: ${emitImportSection().toJSON()}\n\nactual importSection: ${createImportSection().toJSON()}")
+        }
+
+
+    fun createImportSection() =
+        createSection(Section.import, encodeVector(listOf(createPrintFunctionImport(),  memoryImport())))
+
+    fun createPrintFunctionImport() =
+        "env".encode() +
+        "print".encode() +
+        ExportType.func.toByte() +
+        0x00
+
+
+    fun memoryImport() =
+        "env".encode() +
+        "memory".encode() +
+        ExportType.mem.toByte() +
+        /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
+        0x00 +
+        0x01
+
+}
+
+
 
 fun emitHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 fun emitModuleVersion() = byteArrayOf(0x01, 0x00, 0x00, 0x00)
@@ -18,7 +49,7 @@ fun emitImportSection() = byteArrayOf(2, 27, 2, 3, 101, 110, 118, 5, 112, 114, 1
 fun emitFunctionSection() = byteArrayOf(3, 2, 1, 1)
 fun emitExportSection() = byteArrayOf(7, 7, 1, 3, 114, 117, 110, 0, 1)
 
-private fun ProgramNode.emit(): ByteArray {
+private fun Node.emit(): ByteArray {
     log("Emitting Program Node $this")
     return when (this) {
         is PrintStatement -> emitPrintStatement()
@@ -38,6 +69,15 @@ private fun ExpressionNode.emit(): ByteArray {
         else -> throw EmitterException("Unknown expression: $this")
     }
 }
+
+
+fun createSection(section: Section, data: ByteArray) = byteArrayOf(section.intCode.toByte()) + encodeVector(data)
+fun encodeVector(data: ByteArray) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data
+fun encodeVector(data: List<ByteArray>) = byteArrayOf(unsignedLeb128(data.size.toLong())) + data.reduce { acc, bytes -> acc + bytes }
+
+
+val functionType = 0x60
+val emptyArray = 0x0
 
 enum class Opcode(private val code: Int) {
     block(0x02),
@@ -65,4 +105,39 @@ enum class Opcode(private val code: Int) {
 
     fun toByte() = code.toByte()
 
+}
+
+// https://webassembly.github.io/spec/core/binary/types.html
+enum class Valtype(private val code: Int) {
+    i32(0x7f),
+    f32(0x7d);
+
+    fun toByte() = code.toByte()
+}
+
+// https://webassembly.github.io/spec/core/binary/modules.html#sections
+enum class Section(val intCode: Int) {
+    custom ( 0),
+    type ( 1),
+    import ( 2),
+    func ( 3),
+    table ( 4),
+    memory ( 5),
+    global ( 6),
+    export ( 7),
+    start ( 8),
+    element ( 9),
+    code(0);
+    //data(11)
+
+    fun toByte() = intCode.toByte()
+}
+
+enum class ExportType(private val code: Int) {
+    func (0x00),
+    table (0x01),
+    mem (0x02),
+    global(0x03);
+
+    fun toByte() = code.toByte()
 }

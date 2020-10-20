@@ -30,7 +30,7 @@ class TokenProvider(private val tokenIterator: Iterator<Token>) {
     private fun nextToken() = kotlin.runCatching { tokenIterator.next() }.getOrNull()
 }
 
-fun List<Token>.parse(): Program {
+fun List<Token>.parse(): AST {
 
     val filteredList = filterNot { it.type is Whitespace }
     val tokenProvider = TokenProvider(filteredList.iterator())
@@ -93,7 +93,11 @@ fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): ProgramNode 
     }
 }
 
+
+
+
 sealed class ProgramNode : Node {
+
     data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
     data class VariableAndAssignmentDeclaration(
         val name: String,
