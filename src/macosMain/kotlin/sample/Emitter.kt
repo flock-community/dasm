@@ -22,6 +22,8 @@ class Emitter(private val ast: AST) {
 
     private fun createFunctionSection() = createSection(Section.func, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
 
+    private fun createExportSection() = createSection(Section.export, encodeVector(listOf(createRunExportType())))
+
     private fun createPrintFunctionImport() = "env".encode() +
             "print".encode() +
             ExportType.func.toByte() +
@@ -44,6 +46,10 @@ class Emitter(private val ast: AST) {
         byteArrayOf(functionType.toByte()) +
                 encodeVector(byteArrayOf()) +
                 emptyArray.toByte()
+
+    private fun createRunExportType() =  "run".encode() +
+            ExportType.func.toByte() +
+            1.toByte() // 1 because we assume (for now) that we have 1 callable function
 
 }
 
