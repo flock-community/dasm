@@ -1,13 +1,12 @@
 package sample
 
-
 fun main() {
 
-    val compiled = "druk af 14;".compile()
-//    val compiled = "waarde getal wordt 14;".compile()
-//    val compiled = "waarde getal wordt 14; druk af getal;".compile()
+    val source = "druk af 14;"
+//    val source = "waarde getal wordt 14;"
+//    val source = "waarde getal wordt 14; druk af getal;"
 
-    println(compiled.toJSON())
+    println(compile(source).toJSON())
 }
 
 fun ByteArray.toJSON() = "[${joinToString(",")}]"

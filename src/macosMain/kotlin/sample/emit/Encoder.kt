@@ -1,11 +1,11 @@
-package sample.utils
+package sample.emit
 
 /**
  * Reads an unsigned integer from byteBuffer.
  */
 fun unsignedLeb128(long: Long) = long.toUnsignedLeb128()
 
-fun Long.toUnsignedLeb128(): Byte {
+private fun Long.toUnsignedLeb128(): Byte {
     var result = 0
     var current: Int
     var count = 0
