@@ -1,4 +1,4 @@
-package sample.exceptions
+package compiler.exceptions
 
 open class CompilerException(message: String) : RuntimeException(message)
 

@@ -1,4 +1,4 @@
-package sample.emit
+package compiler.emit
 
 enum class Opcode(val byte: Byte) {
     block(0x02),

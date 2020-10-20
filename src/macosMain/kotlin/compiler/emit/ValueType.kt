@@ -1,4 +1,4 @@
-package sample.emit
+package compiler.emit
 
 // https://webassembly.github.io/spec/core/binary/types.html
 enum class ValueType(val byte: Byte) {

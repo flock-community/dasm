@@ -1,19 +1,28 @@
-package sample.emit
+package compiler.emit
 
-import sample.AST
-import sample.ExpressionNode
-import sample.Node
-import sample.ProgramNode.PrintStatement
-import sample.exceptions.EmitterException
-import sample.utils.log
+import compiler.AST
+import compiler.parse.ExpressionNode
+import compiler.parse.Node
+import compiler.parse.ProgramNode.PrintStatement
+import compiler.exceptions.EmitterException
+import compiler.utils.log
 
-fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
-fun createModuleVersion() = byteArrayOf(1, 0, 0, 0)
-fun createTypeSection() = Create.section(Section.Type, encodeVector(Create.printFuncType(), Create.funcType()))
-fun createImportSection() = Create.section(Section.Import, encodeVector(Create.printFunctionImport(), Create.memoryImport()))
-fun createFunctionSection() = Create.section(Section.Function, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
-fun createExportSection() = Create.section(Section.Export, encodeVector(Create.runExportType(), sizeOfByteArray = false))
-fun AST.createCodeSection() = Create.section(Section.Code, byteArrayOf(1, 9, 0) + map { it.emit() }.reduce { acc, cur -> acc + cur } + 11)
+fun AST.emit(): ByteArray = createHeader() +
+        createModuleVersion() +
+        createTypeSection() +
+        createImportSection() +
+        createFunctionSection() +
+        createExportSection() +
+        createCodeSection()
+
+
+private fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
+private fun createModuleVersion() = byteArrayOf(1, 0, 0, 0)
+private fun createTypeSection() = Create.section(Section.Type, encodeVector(Create.printFuncType(), Create.funcType()))
+private fun createImportSection() = Create.section(Section.Import, encodeVector(Create.printFunctionImport(), Create.memoryImport()))
+private fun createFunctionSection() = Create.section(Section.Function, encodeVector(byteArrayOf(1.toByte()))) // 1 because we assume (for now) that we have 1 function
+private fun createExportSection() = Create.section(Section.Export, encodeVector(Create.runExportType(), sizeOfByteArray = false))
+private fun AST.createCodeSection() = Create.section(Section.Code, byteArrayOf(1, 9, 0) + map { it.emit() }.reduce { acc, cur -> acc + cur } + 11)
 
 private fun encodeVector(vararg data: ByteArray, sizeOfByteArray: Boolean = true) = data
     .let { if (it.size == 1 && sizeOfByteArray) it[0].size to it[0] else it.size to it.reduce { acc, bytes -> acc + bytes } }

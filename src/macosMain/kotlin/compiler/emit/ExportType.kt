@@ -1,4 +1,4 @@
-package sample.emit
+package compiler.emit
 
 enum class ExportType(val byte: Byte) {
     Function(0),

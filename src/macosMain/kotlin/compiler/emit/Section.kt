@@ -1,4 +1,4 @@
-package sample.emit
+package compiler.emit
 
 // https://webassembly.github.io/spec/core/binary/modules.html#sections
 enum class Section(val byte: Byte) {

@@ -1,4 +1,4 @@
-package sample.emit
+package compiler.emit
 
 /**
  * Reads an unsigned integer from byteBuffer.

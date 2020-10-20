@@ -1,7 +1,11 @@
-package sample
+package compiler
 
-import languagespec.LanguageSpec
-import sample.utils.log
+import compiler.emit.emit
+import compiler.languages.LanguageSpec
+import compiler.parse.Node
+import compiler.parse.parse
+import compiler.tokenize.tokenize
+import compiler.utils.log
 
 typealias AST = List<Node>
 
