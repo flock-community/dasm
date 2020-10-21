@@ -1,14 +1,16 @@
 package compiler.parse
 
+import compiler.parse.ExpressionNode.IdentifierNode
+import compiler.parse.ExpressionNode.NumberNode
+
 interface Node
 
 sealed class ProgramNode : Node {
 
     data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
     data class VariableAndAssignmentDeclaration(
-        val name: String,
-        val initializer: ExpressionNode,
-        val numberNode: ExpressionNode
+        val identifierNode: IdentifierNode,
+        val numberNode: NumberNode
     ) : ProgramNode() // Temp NumberNode
 }
 

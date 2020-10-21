@@ -1,3 +1,8 @@
 package compiler.utils
 
-fun log(string: String) = if (false) println(string) else Unit
+import kotlinx.cinterop.toKString
+import platform.posix.getenv
+
+fun log(string: String) = if (enableLogging) println(string) else Unit
+
+private val enableLogging = getenv("DASM_LOG_ENABLED")?.toKString().toBoolean()

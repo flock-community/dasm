@@ -1,6 +1,9 @@
 package compiler.emit
 
-enum class Opcode(val byte: Byte) {
+import compiler.common.ByteArrayAble
+import compiler.common.ByteConcatAble
+
+enum class Opcode(override val byte: Byte) : ByteConcatAble, ByteArrayAble {
     block(0x02),
     loop(0x03),
     br(0x0c),

@@ -1,7 +1,10 @@
 package compiler.emit
 
+import compiler.common.ByteArrayAble
+import compiler.common.ByteConcatAble
+
 // https://webassembly.github.io/spec/core/binary/modules.html#sections
-enum class Section(val byte: Byte) {
+enum class Section(override val byte: Byte) : ByteConcatAble, ByteArrayAble {
     Custom(0),
     Type(1),
     Import(2),

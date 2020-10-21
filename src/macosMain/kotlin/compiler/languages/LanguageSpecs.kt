@@ -9,7 +9,7 @@ interface LanguageSpec {
 object DasmLanguageSpec : LanguageSpec {
 
     override val matchers = listOf(
-        Regex("^waarde ") to Value,
+        Regex("^waarde") to Value,
         Regex("^druk af") to Print,
         Regex("^wordt") to Assignment,
         Regex("^-?[.0-9]+") to Number,
