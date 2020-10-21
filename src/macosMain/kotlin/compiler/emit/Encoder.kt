@@ -3,6 +3,7 @@ package compiler.emit
 /**
  * Reads an unsigned integer from byteBuffer.
  */
+fun unsignedLeb128(int: Int) = int.toLong().toUnsignedLeb128()
 fun unsignedLeb128(long: Long) = long.toUnsignedLeb128()
 
 private fun Long.toUnsignedLeb128(): Byte {

@@ -22,15 +22,21 @@ fun AST.emit(): ByteArray = createHeader() +
         createExportSection() +
         createCodeSection()
 
+private val functions: List<String> = listOf("main")
+
 private fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 private fun createModuleVersion() = byteArrayOf(1, 0, 0, 0)
 private fun createTypeSection() = Create.section(Section.Type, listOf(Create.printFunctionType(), Create.functionType()).encode())
 private fun createImportSection() = Create.section(Section.Import, listOf(Create.printFunctionImport(), Create.memoryImport()).encode())
-private fun createFunctionSection() = Create.section(Section.Function, 1.encode()) // 1 because we assume (for now) that we have 1 function
+private fun createFunctionSection() = Create.section(Section.Function, functions.size.encode()) // 1 because we assume (for now) that we have 1 function
 private fun createExportSection() = Create.section(Section.Export, listOf(Create.runExportType()).encode())
-private fun AST.createCodeSection() = Create.section(Section.Code, listOf((getLocals() + emitCode() + Opcode.end).encode()).encode())
+private fun AST.createCodeSection() = emitCode() // Order matters! We need to fill the identifiers before we can extract the locals.
+    .let { Create.section(Section.Code, listOf((emitLocals() + it + Opcode.end).encode()).encode()) }
 
-private fun getLocals() = byteArrayOf().encode()
+private fun emitLocals(): ByteArray = identifiers
+    .also { log((it.size == functions.size).toString()) }
+    .run { if (size == functions.size) listOf() else listOf(unsignedLeb128(size) + ValueType.f32) }
+    .encode()
 
 private fun AST.emitCode() = map { it.emit() }.reduce { acc, cur -> acc + cur }
 
@@ -72,7 +78,7 @@ fun Node.emit(): ByteArray = also { log("Emitting Program Node $it") }
     }
 
 private fun PrintStatement.emitPrintStatement(): ByteArray = also { log("Emitting Print Statement") }
-    .let { expression.emit() + Opcode.call + unsignedLeb128(0L) }
+    .let { expression.emit() + Opcode.call + unsignedLeb128(0) }
 
 private fun VariableAndAssignmentDeclaration.emitVariableAndAssignmentDeclaration(): ByteArray = also { log("Emitting Variable And Assignment Declaration") }
     .let { numberNode.emit() + Opcode.set_local + identifierNode.emit() }
@@ -81,7 +87,14 @@ private fun ExpressionNode.emit(): ByteArray = also { log("Emitting Expression $
     .let {
         when (this) {
             is NumberNode -> Opcode.f32_const + number.toIEEE754Array()
-            is IdentifierNode -> byteArrayOf() // TODO implement
+            is IdentifierNode -> byteArrayOf(unsignedLeb128(getIdentifier(value)))
             else -> throw EmitterException("Unknown expression: $this")
         }
     }
+
+private val identifiers: MutableList<String> = mutableListOf(*functions.toTypedArray())
+
+private fun getIdentifier(identifierNodeValue: String): Int = with(identifiers) {
+    if (!contains(identifierNodeValue)) add(identifierNodeValue)
+    indexOf(identifierNodeValue)
+}
