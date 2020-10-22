@@ -1,7 +1,6 @@
 const opts = {
     env: {
-        print: console.log,
-        memory: new WebAssembly.Memory({initial: 1})
+        print: console.log
     }
 }
 

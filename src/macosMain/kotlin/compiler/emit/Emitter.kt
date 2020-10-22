@@ -22,13 +22,11 @@ fun AST.emit(): ByteArray = createHeader() +
         createExportSection() +
         createCodeSection()
 
-private val functions: List<String> = listOf("main")
-
 private fun createHeader() = byteArrayOf(0x00, 0x61, 0x73, 0x6d)
 private fun createModuleVersion() = byteArrayOf(1, 0, 0, 0)
 private fun createTypeSection() = Create.section(Section.Type, listOf(Create.printFunctionType(), Create.functionType()).encode())
-private fun createImportSection() = Create.section(Section.Import, listOf(Create.printFunctionImport(), Create.memoryImport()).encode())
-private fun createFunctionSection() = Create.section(Section.Function, functions.size.encode()) // 1 because we assume (for now) that we have 1 function
+private fun createImportSection() = Create.section(Section.Import, listOf(Create.printFunctionImport()).encode())
+private fun createFunctionSection() = Create.section(Section.Function, Create.functions.size.encode())
 private fun createExportSection() = Create.section(Section.Export, listOf(Create.runExportType()).encode())
 private fun AST.createCodeSection() = emitCode() // Order matters! We need to fill the identifiers before we can extract the locals.
     .let { Create.section(Section.Code, listOf((emitLocals() + it + Opcode.end).encode()).encode()) }
@@ -40,19 +38,15 @@ private fun emitLocals(): ByteArray = identifiers
 private fun AST.emitCode() = map { it.emit() }.reduce { acc, cur -> acc + cur }
 
 private object Create {
+
+    val functions: List<String> = listOf("main")
+
     fun section(section: Section, data: ByteArray) = section + data.encode()
 
     fun printFunctionImport() = "env".encode() +
             "print".encode() +
             ExportType.Function +
             0x00
-
-    fun memoryImport() = "env".encode() +
-            "memory".encode() +
-            ExportType.Memory +
-            /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -indicates a min memory size of one page */
-            0x00 +
-            0x01
 
     fun printFunctionType() = FunctionType +
             ValueType.f32.encode() +
@@ -64,7 +58,7 @@ private object Create {
 
     fun runExportType() = "run".encode() +
             ExportType.Function +
-            1.toByte() // 1 because we assume (for now) that we have 1 callable function
+            functions.size.toByte()
 }
 
 fun Node.emit(): ByteArray = also { log("Emitting Program Node $it") }
