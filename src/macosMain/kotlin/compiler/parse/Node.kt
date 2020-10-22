@@ -23,8 +23,3 @@ sealed class ExpressionNode : Node {
     data class NumberNode(val number: Float) : ExpressionNode()
     data class AssignmentNode(val value: String) : ExpressionNode()
 }
-
-sealed class TerminationNode : Node {
-    object EOLNode : TerminationNode()
-    object EOPNode : TerminationNode()
-}

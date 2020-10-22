@@ -5,7 +5,6 @@ import compiler.exceptions.ParserException
 import compiler.parse.ExpressionNode.*
 import compiler.parse.ProgramNode.PrintStatement
 import compiler.parse.ProgramNode.VariableAndAssignmentDeclaration
-import compiler.parse.TerminationNode.EOLNode
 import compiler.tokenize.*
 import compiler.utils.log
 
@@ -40,7 +39,7 @@ private fun TokenProvider.parsePrintStatement(): PrintStatement = token
     .let {
         eatToken()
         val expression = parseExpression()
-        parseEndOfLine()
+        eatToken()
         PrintStatement(expression)
     }
 
@@ -51,7 +50,7 @@ private fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): Vari
         val identifierNode = parseExpression() as IdentifierNode
         parseExpression() as AssignmentNode
         val numberNode = parseExpression() as NumberNode
-        parseEndOfLine()
+        eatToken()
         VariableAndAssignmentDeclaration(identifierNode, numberNode)
     }
 
@@ -67,12 +66,3 @@ private fun TokenProvider.parseExpression(): ExpressionNode = token
     }
     .also { eatToken() }
 
-private fun TokenProvider.parseEndOfLine(): TerminationNode = token
-    .also { log("Parsing End Of Line with Token: ${it.type}") }
-    .run {
-        when (type) {
-            is EndOfLine -> EOLNode
-            else -> throw ParserException("Token of type: '$type' is not an End Of Line token")
-        }
-    }
-    .also { eatToken() }
