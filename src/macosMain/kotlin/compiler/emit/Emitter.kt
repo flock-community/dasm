@@ -34,8 +34,7 @@ private fun AST.createCodeSection() = emitCode() // Order matters! We need to fi
     .let { Create.section(Section.Code, listOf((emitLocals() + it + Opcode.end).encode()).encode()) }
 
 private fun emitLocals(): ByteArray = identifiers
-    .also { log((it.size == functions.size).toString()) }
-    .run { if (size == functions.size) listOf() else listOf(unsignedLeb128(size) + ValueType.f32) }
+    .run { if (isEmpty()) listOf() else listOf(unsignedLeb128(size) + ValueType.f32) }
     .encode()
 
 private fun AST.emitCode() = map { it.emit() }.reduce { acc, cur -> acc + cur }
@@ -81,18 +80,21 @@ private fun PrintStatement.emitPrintStatement(): ByteArray = also { log("Emittin
     .let { expression.emit() + Opcode.call + unsignedLeb128(0) }
 
 private fun VariableAndAssignmentDeclaration.emitVariableAndAssignmentDeclaration(): ByteArray = also { log("Emitting Variable And Assignment Declaration") }
-    .let { numberNode.emit() + Opcode.set_local + identifierNode.emit() }
+    .let { numberNode.emit() + identifierNode.set().emit() }
 
 private fun ExpressionNode.emit(): ByteArray = also { log("Emitting Expression $it") }
     .let {
         when (this) {
             is NumberNode -> Opcode.f32_const + number.toIEEE754Array()
-            is IdentifierNode -> byteArrayOf(unsignedLeb128(getIdentifier(value)))
+            is IdentifierNode -> when (set) {
+                true -> Opcode.set_local + byteArrayOf(unsignedLeb128(getIdentifier(value)))
+                false -> Opcode.get_local + byteArrayOf(unsignedLeb128(getIdentifier(value)))
+            }
             else -> throw EmitterException("Unknown expression: $this")
         }
     }
 
-private val identifiers: MutableList<String> = mutableListOf(*functions.toTypedArray())
+private val identifiers: MutableList<String> = mutableListOf()
 
 private fun getIdentifier(identifierNodeValue: String): Int = with(identifiers) {
     if (!contains(identifierNodeValue)) add(identifierNodeValue)

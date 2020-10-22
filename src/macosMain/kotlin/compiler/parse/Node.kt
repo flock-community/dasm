@@ -15,7 +15,11 @@ sealed class ProgramNode : Node {
 }
 
 sealed class ExpressionNode : Node {
-    data class IdentifierNode(val value: String) : ExpressionNode()
+    data class IdentifierNode(val value: String, val set: Boolean = false) : ExpressionNode() {
+        fun set() = copy(set = true)
+        fun get() = copy(set = false)
+    }
+
     data class NumberNode(val number: Float) : ExpressionNode()
     data class AssignmentNode(val value: String) : ExpressionNode()
 }
