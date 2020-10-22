@@ -39,7 +39,7 @@ private fun TokenProvider.parsePrintStatement(): PrintStatement = token
     .let {
         eatToken()
         val expression = parseExpression()
-        eatToken()
+        parseEndOfLine()
         PrintStatement(expression)
     }
 
@@ -66,3 +66,11 @@ private fun TokenProvider.parseExpression(): ExpressionNode = token
     }
     .also { eatToken() }
 
+private fun TokenProvider.parseEndOfLine() = token
+    .also { log("Parsing End Of Line with Token: ${it.type}") }
+    .run {
+        when (type) {
+            is EndOfLine -> eatToken()
+            else -> throw ParserException("Token of type: '$type' is not an End Of Line token")
+        }
+    }
