@@ -74,7 +74,7 @@ private fun PrintStatement.emitPrintStatement(): ByteArray = also { log("Emittin
     .let { expression.emit() + Opcode.call + unsignedLeb128(0) }
 
 private fun VariableAndAssignmentDeclaration.emitVariableAndAssignmentDeclaration(): ByteArray = also { log("Emitting Variable And Assignment Declaration") }
-    .let { numberNode.emit() + identifierNode.set().emit() }
+    .let { expression.emit() + identifier.set().emit() }
 
 private fun ExpressionNode.emit(): ByteArray = also { log("Emitting Expression $it") }
     .let {

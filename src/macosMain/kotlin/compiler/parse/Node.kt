@@ -9,8 +9,8 @@ sealed class ProgramNode : Node {
 
     data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
     data class VariableAndAssignmentDeclaration(
-        val identifierNode: IdentifierNode,
-        val numberNode: NumberNode
+        val identifier: IdentifierNode,
+        val expression: ExpressionNode
     ) : ProgramNode() // Temp NumberNode
 }
 
