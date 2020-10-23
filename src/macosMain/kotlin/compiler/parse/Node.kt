@@ -7,7 +7,7 @@ interface Node
 
 sealed class ProgramNode : Node {
 
-    data class Print(val expression: ExpressionNode) : ProgramNode()
+    data class PrintStatement(val expression: ExpressionNode) : ProgramNode()
     data class VariableAndAssignmentDeclaration(
         val identifier: IdentifierNode,
         val expression: ExpressionNode

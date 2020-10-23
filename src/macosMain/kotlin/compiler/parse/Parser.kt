@@ -3,7 +3,7 @@ package compiler.parse
 import compiler.AST
 import compiler.exceptions.ParserException
 import compiler.parse.ExpressionNode.*
-import compiler.parse.ProgramNode.Print
+import compiler.parse.ProgramNode.PrintStatement
 import compiler.parse.ProgramNode.VariableAndAssignmentDeclaration
 import compiler.tokenize.*
 import compiler.utils.log
@@ -34,13 +34,13 @@ private fun TokenProvider.parseKeyword(): ProgramNode = token
         }
     }
 
-private fun TokenProvider.parsePrintStatement(): Print = token
+private fun TokenProvider.parsePrintStatement(): PrintStatement = token
     .also { log("Parsing Print statement with Token: ${it.type}") }
     .let {
         eatToken()
         val expression = parseExpression()
         parseEndOfLine()
-        Print(expression)
+        PrintStatement(expression)
     }
 
 private fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): VariableAndAssignmentDeclaration = token
