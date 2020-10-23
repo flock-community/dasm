@@ -81,8 +81,8 @@ private fun ExpressionNode.emit(): ByteArray = also { log("Emitting Expression $
         when (this) {
             is NumberNode -> Opcode.f32_const + number.toIEEE754Array()
             is IdentifierNode -> when (set) {
-                true -> Opcode.set_local + byteArrayOf(unsignedLeb128(getIdentifier(value)))
-                false -> Opcode.get_local + byteArrayOf(unsignedLeb128(getIdentifier(value)))
+                true -> Opcode.set_local + getIdentifier(value)
+                false -> Opcode.get_local + getIdentifier(value)
             }
             else -> throw EmitterException("Unknown expression: $this")
         }
@@ -90,7 +90,7 @@ private fun ExpressionNode.emit(): ByteArray = also { log("Emitting Expression $
 
 private val identifiers: MutableList<String> = mutableListOf()
 
-private fun getIdentifier(identifierNodeValue: String): Int = with(identifiers) {
+private fun getIdentifier(identifierNodeValue: String): ByteArray = with(identifiers) {
     if (!contains(identifierNodeValue)) add(identifierNodeValue)
     indexOf(identifierNodeValue)
-}
+}.let { byteArrayOf(unsignedLeb128(it)) }

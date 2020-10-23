@@ -24,8 +24,6 @@ private fun Long.toUnsignedLeb128(): Byte {
     return result.toByte()
 }
 
-fun String.encode() = byteArrayOf(length.toByte()) + map { it.toByte() }
-
 fun Float.toIEEE754Array(): ByteArray = toRawBits().let {
     byteArrayOf(
         it.toByte(),
