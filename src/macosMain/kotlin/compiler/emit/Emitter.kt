@@ -10,7 +10,7 @@ import compiler.parse.ExpressionNode
 import compiler.parse.ExpressionNode.IdentifierNode
 import compiler.parse.ExpressionNode.NumberNode
 import compiler.parse.Node
-import compiler.parse.ProgramNode.PrintStatement
+import compiler.parse.ProgramNode.Print
 import compiler.parse.ProgramNode.VariableAndAssignmentDeclaration
 import compiler.utils.log
 
@@ -64,13 +64,13 @@ private object Create {
 fun Node.emit(): ByteArray = also { log("Emitting Program Node $it") }
     .run {
         when (this) {
-            is PrintStatement -> emitPrintStatement()
+            is Print -> emitPrint()
             is VariableAndAssignmentDeclaration -> emitVariableAndAssignmentDeclaration()
             else -> throw EmitterException("Unknown program node: $this")
         }
     }
 
-private fun PrintStatement.emitPrintStatement(): ByteArray = also { log("Emitting Print Statement") }
+private fun Print.emitPrint(): ByteArray = also { log("Emitting Print Statement") }
     .let { expression.emit() + Opcode.call + unsignedLeb128(0) }
 
 private fun VariableAndAssignmentDeclaration.emitVariableAndAssignmentDeclaration(): ByteArray = also { log("Emitting Variable And Assignment Declaration") }
