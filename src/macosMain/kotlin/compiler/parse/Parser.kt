@@ -50,7 +50,7 @@ private fun TokenProvider.parseVariableDeclarationAndAssignmentStatement(): Vari
         val identifierNode = parseExpression() as IdentifierNode
         parseExpression() as AssignmentNode
         val numberNode = parseExpression() as NumberNode
-        eatToken()
+        parseEndOfLine()
         VariableAndAssignmentDeclaration(identifierNode, numberNode)
     }
 
