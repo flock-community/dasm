@@ -15,4 +15,3 @@ fun LanguageSpec.compile(source: String) = tokenize(source)
     .also { log("********** PARSED **********\n$it\n########## PARSED ##########") }
     .emit()
     .apply { log("********** EMITTED **********\n${joinToString(", ")}\n########## EMITTED ##########") }
-

@@ -12,7 +12,7 @@ fun List<Token>.parse(): AST = filterNot { it.type is Whitespace }
     .toProvider()
     .run { parser() }
 
-private fun TokenProvider.parser() = mutableListOf<ProgramNode>()
+private fun TokenProvider.parser(): AST = mutableListOf<ProgramNode>()
     .also { while (hasNext()) it.add(parseStatement()) }
 
 private fun TokenProvider.parseStatement(): ProgramNode = token

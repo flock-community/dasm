@@ -3,7 +3,7 @@ package compiler.tokenize
 import compiler.exceptions.TokenizerException
 import compiler.languages.LanguageSpec
 
-infix fun LanguageSpec.tokenize(source: String) = source.tokenize(this) + Token(type = EndOfProgram, value = "EOP", index = source.length + 1L)
+infix fun LanguageSpec.tokenize(source: String): List<Token> = source.tokenize(this) + Token(type = EndOfProgram, value = "EOP", index = source.length + 1L)
 
 private fun String.tokenize(languageSpec: LanguageSpec, index: Long = 1L): List<Token> = when (val token = findToken(index, languageSpec)) {
     null -> throw noTokenFoundException(index)
